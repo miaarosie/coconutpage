@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="insertCard">
+		INSERT INTO CARD (CARD_NO, CARD_TITLE, CARD_CONTENT, CARD_DEW, CARD_PRIORITY, EMP_NO)
+		VALUES (SEQ_CARD_NO.NEXTVAL, ?, ?, ?, ?, ?)
+	</entry>
+	
+	<entry key="insertNewCard">
+		SELECT CARD_NO, CARD_STMT, CARD_TITLE, CARD_CONTENT, CARD_DEW, CARD_PRIORITY, CARD_ORDER
+		  FROM CARD
+		 WHERE EMP_NO = ?
+	  ORDER BY CARD_NO DESC
+	</entry>
+	
+	<entry key="selectAllCards">
+		SELECT CARD_NO, CARD_STMT, CARD_TITLE, CARD_CONTENT, CARD_DEW, CARD_PRIORITY, CARD_ORDER
+		  FROM CARD
+		 WHERE DELETE_YN = 'N'
+		   AND EMP_NO = ?
+	  ORDER BY CARD_STMT, CARD_ORDER ASC
+	</entry>
+	
+	<entry key="updateCardPosition">
+		UPDATE CARD
+		   SET CARD_STMT = ?,
+		       CARD_ORDER = ?
+		 WHERE CARD_NO = ?
+		   AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="updateCard">
+		UPDATE CARD
+		   SET CARD_CONTENT = ?,
+		   	   CARD_DEW = ?,
+		   	   CARD_PRIORITY = ?
+		 WHERE CARD_NO = ?
+		   AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="deleteCard">
+		UPDATE CARD
+		   SET DELETE_YN = 'Y'
+		 WHERE CARD_NO = ?
+	</entry>
+	
+	
+	
+	
+</properties>

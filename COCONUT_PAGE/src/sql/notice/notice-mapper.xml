@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="totalNotice"> <!-- 전체 글 개수 -->
+		SELECT COUNT(*) FROM NOTICE
+		WHERE DELETE_YN = 'N' AND NOTICE_TYPE = ?
+	</entry>
+	<entry key="totalSearchNotice"> <!-- 전체 검색 글 개수 -->
+		SELECT COUNT(*)	FROM NOTICE
+		JOIN EMPLOYEE USING	(EMP_NO)
+		WHERE (NOTICE_TITLE LIKE '%'|| ? ||'%' OR EMP_NAME LIKE '%'|| ? ||'%')
+		AND DELETE_YN = 'N' AND NOTICE_TYPE = ? 
+	</entry>
+	
+	<entry key="selectNoticeList"> <!-- 페이지 글 리스트 가져오기 -->
+		SELECT NOTICE_NO, NOTICE_TITLE, EMP_NAME, TO_CHAR(NOTICE_DATE, 'YYYY.MM.DD.') NDATE, VIEW_COUNT
+		FROM (
+		SELECT a.*,
+		ROWNUM as RNUM FROM (
+		SELECT * FROM NOTICE WHERE DELETE_YN = 'N'
+		AND
+		NOTICE_TYPE = ? ORDER BY NOTICE_NO DESC
+		)a)
+		JOIN EMPLOYEE USING (EMP_NO)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	<entry key="searchNoticeList"> <!-- 페이지 글 리스트 가져오기 -->
+		SELECT NOTICE_NO, NOTICE_TITLE, EMP_NAME, TO_CHAR(NOTICE_DATE, 'YYYY.MM.DD.') NDATE, VIEW_COUNT
+		FROM (
+		SELECT a.*,
+		ROWNUM as RNUM FROM (
+			SELECT * FROM NOTICE JOIN EMPLOYEE USING (EMP_NO)
+		    WHERE (NOTICE_TITLE LIKE '%'|| ? ||'%' OR EMP_NAME LIKE '%'|| ? ||'%')
+		    AND DELETE_YN = 'N' AND NOTICE_TYPE = ? 
+		    ORDER BY NOTICE_NO DESC
+		)a) WHERE RNUM >= ? AND RNUM <![CDATA[<=]]> ?
+	</entry>
+	
+	<entry key="insertNotice"> <!-- 글쓰기 -->
+		INSERT INTO NOTICE VALUES (
+		SEQ_NOTICE_NO.NEXTVAL
+		, ?, ? ,?
+		, DEFAULT ,DEFAULT ,DEFAULT
+		, ? ,?, ?)
+	</entry>
+	
+	<entry key="increaseViewCount"> <!-- 조회수 증가 -->
+		UPDATE NOTICE 
+		SET VIEW_COUNT = VIEW_COUNT + 1
+		WHERE NOTICE_NO = ? 
+		AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="selectNoticeByNo"> <!-- 리스트 상세뷰 -->
+		SELECT NOTICE_NO
+			, NOTICE_TYPE
+			, NOTICE_TITLE
+			, NOTICE_CONTENT
+			, TO_CHAR(NOTICE_DATE, 'YYYY.MM.DD. HH24:MI') NDATE
+			, VIEW_COUNT
+			, EMP_NO
+			, ORIGIN_FILE
+			, CHANGE_FILE
+			, EMP_NAME
+			FROM NOTICE
+			JOIN EMPLOYEE USING (EMP_NO)
+			WHERE NOTICE_NO = ? AND DELETE_YN = 'N'
+	</entry>
+	<entry key="updateNotice">
+		UPDATE NOTICE 
+		SET NOTICE_TITLE =?
+		, NOTICE_CONTENT = ?
+		, NOTICE_DATE = SYSDATE
+		, ORIGIN_FILE = ?
+		, CHANGE_FILE = ?
+		WHERE NOTICE_NO = ?
+		AND DELETE_YN = 'N'
+	</entry>
+	<entry key="deleteNotice">
+		UPDATE NOTICE 
+		SET DELETE_YN = 'Y'
+		WHERE NOTICE_NO = ?
+	</entry>
+</properties>

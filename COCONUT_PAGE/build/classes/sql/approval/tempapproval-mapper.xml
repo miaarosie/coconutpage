@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="selectListCount">
+		SELECT COUNT(DISTINCT D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 0
+		AND D.EMP_NO = ?
+	</entry>
+	
+	<entry key="selectSearchListCount">
+		SELECT COUNT(DISTINCT D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 0
+		AND D.EMP_NO = ?
+		AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+	</entry>
+	
+	<entry key="selectApprovalList">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, A.*
+            FROM (SELECT DISTINCT D.APR_ID
+                       , D.APR_TITLE
+                       , D.UPDATE_DATE
+                       , E.EMP_NAME
+                       , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+                  FROM APR_DOC D
+                  JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+                  LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+                  WHERE APR_STATUS = 0
+                  AND D.EMP_NO = ?
+                  ORDER BY UPDATE_DATE DESC) A)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectSearchApprovalList">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, A.*
+            FROM (SELECT DISTINCT D.APR_ID
+                       , D.APR_TITLE
+                       , D.UPDATE_DATE
+                       , E.EMP_NAME
+                       , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+                  FROM APR_DOC D
+                  JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+                  LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+                  WHERE APR_STATUS = 0
+                  AND D.EMP_NO = ?
+                  AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+                  ORDER BY UPDATE_DATE DESC) A)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectTempApproval">
+		SELECT A.APR_ID, APR_TITLE, APR_CONTENT, WRITE_DATE, UPDATE_DATE
+           	   , APR_STATUS, ORIGIN_NAME, CHANGE_NAME, EMP_NAME
+           	   , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+		FROM APR_DOC A
+		JOIN EMPLOYEE E ON (A.EMP_NO = E.EMP_NO)
+		LEFT JOIN DOC_SPENT S ON (A.APR_ID = S.APR_ID)
+		WHERE A.APR_ID = ?
+	</entry>
+	
+	<entry key="selectTempDocSpent">
+		SELECT DOC_NO, SPENT_DATE, CORP, CORP_NO, HISTORY, SPENT_MONEY
+		FROM DOC_SPENT
+		WHERE APR_ID = ?
+	</entry>
+	
+	<entry key="updateAppDoc">
+		UPDATE APR_DOC
+		SET APR_TITLE = ?
+		     , APR_CONTENT = ?
+		     , UPDATE_DATE = SYSDATE
+		     , APR_STATUS = 1
+		     , ORIGIN_NAME = ?
+		     , CHANGE_NAME = ?
+		     , APR_COMMENT = ?
+		WHERE APR_ID = ?
+		AND EMP_NO = ?
+	</entry>
+	
+	<entry key="deleteDocSpent">
+		DELETE FROM DOC_SPENT
+		WHERE APR_ID = ?
+	</entry>
+	
+	<entry key="insertDocSpent">
+		INSERT INTO DOC_SPENT (DOC_NO
+                             , SPENT_DATE
+                             , CORP
+                             , CORP_NO
+                             , HISTORY
+                             , SPENT_MONEY
+                             , APR_ID)
+		VALUES (SEQ_DOC_SPENT.NEXTVAL
+              , ?
+              , ?
+              , ?
+              , ?
+              , ?
+              , ?)
+	</entry>
+	
+	<entry key="updateTempAppDoc">
+		UPDATE APR_DOC
+		SET APR_TITLE = ?
+		     , APR_CONTENT = ?
+		     , UPDATE_DATE = SYSDATE
+		     , APR_STATUS = 0
+		     , ORIGIN_NAME = ?
+		     , CHANGE_NAME = ?
+		WHERE APR_ID = ?
+		AND EMP_NO = ?
+	</entry>
+	
+	<entry key="selectTempReport">
+			 SELECT 
+			 APR_ID,
+			 APR_TITLE,
+		     APR_CONTENT,
+		     UPDATE_DATE,
+		     ORIGIN_NAME,
+		     CHANGE_NAME
+			 FROM APR_DOC
+			 WHERE APR_ID = ?
+			 AND APR_STATUS =0
+	</entry>
+	
+	<!-- 임시저장했던 문서 결재자 리스트 추가  -->
+   <entry key="insertAprListTemp">
+      INSERT INTO APPROVAL
+      (EMP_NO, APR_ORDER, APR_YN, APR_ID)
+      VALUES (?, ?, 1, ?)
+   </entry>
+    <!-- 임시저장했던 문서 참조자 리스트 추가  -->
+   <entry key="insertRefListTemp">
+      INSERT INTO DOC_CC
+      (EMP_NO, APR_ID)
+      VALUES (?, ?)
+   </entry>
+   
+   <entry key="updateTempReport">
+		UPDATE APR_DOC
+		SET APR_TITLE = ?
+		     , APR_CONTENT = ?
+		     , UPDATE_DATE = SYSDATE
+		     , APR_STATUS = 0
+		     , ORIGIN_NAME = ?
+		     , CHANGE_NAME = ?
+		WHERE APR_ID = ?
+		AND EMP_NO = ?
+	</entry>
+   
+   
+   <entry key="updateReportForm">
+		
+		UPDATE APR_DOC
+		SET APR_TITLE = ?
+		     , APR_CONTENT = ?
+		     , UPDATE_DATE = SYSDATE
+		     , APR_STATUS = 1
+		     , ORIGIN_NAME = ?
+		     , CHANGE_NAME = ?
+		     , APR_COMMENT = ?
+		WHERE APR_ID = ?
+		AND EMP_NO = ?
+		
+	</entry>
+	
+   
+	
+</properties>

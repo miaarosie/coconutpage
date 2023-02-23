@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="selectCalendarList">
+		SELECT SCHD_NO
+			 , SCHD_TITLE
+			 , SCHD_CATEGORY
+			 , TO_CHAR(START_DATE, 'YYYY-MM-DD') START_DATE
+			 , TO_CHAR(END_DATE, 'YYYY-MM-DD') END_DATE
+		FROM CALENDAR
+		WHERE (EMP_NO = ? OR SCHD_CATEGORY = '2')
+		  AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="insertCalendar">
+		INSERT INTO CALENDAR(SCHD_NO
+						   , SCHD_TITLE
+						   , SCHD_CATEGORY
+						   , START_DATE
+						   , END_DATE
+						   , EMP_NO)
+	 				 VALUES (SEQ_SCHD_NO.NEXTVAL
+	 				 	  , ?
+	 				 	  , 1
+	 				 	  , TO_DATE(?, 'YYYY-MM-DD HH24-MI')
+	 				 	  , TO_DATE(?, 'YYYY-MM-DD HH24-MI')
+	 				 	  , ?)
+	
+	</entry>
+	
+	<entry key="updateCalendar">
+		UPDATE CALENDAR
+		   SET START_DATE = TO_DATE(?, 'YYYY-MM-DD HH24-MI')
+		     , END_DATE = TO_DATE(?, 'YYYY-MM-DD HH24-MI')
+		 WHERE EMP_NO = ?
+		   AND SCHD_TITLE = ?
+		   AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="deleteCalendar">
+		UPDATE CALENDAR
+		   SET DELETE_YN = 'Y'
+		 WHERE SCHD_NO = ?
+		   AND EMP_NO = ?
+	</entry>
+	
+	
+</properties>

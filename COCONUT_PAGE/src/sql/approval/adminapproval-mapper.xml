@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<entry key="selectAllListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN != 3
+</entry>
+
+<entry key="selectIngListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN != 4
+    AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                       FROM APPROVAL B
+                       GROUP BY B.APR_ID
+                       HAVING B.APR_ID = A.APR_ID)
+</entry>
+
+<entry key="selectDoneListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN = 4
+    AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                       FROM APPROVAL B
+                       GROUP BY B.APR_ID
+                       HAVING B.APR_ID = A.APR_ID)
+</entry>
+	
+<entry key="selectSearchListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN != 3
+	AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+</entry>	
+
+<entry key="selectSearchIngListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN != 4
+    AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                       FROM APPROVAL B
+                       GROUP BY B.APR_ID
+                       HAVING B.APR_ID = A.APR_ID)
+	AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+
+</entry>
+	
+<entry key="selectSearchDoneListCount">
+	SELECT COUNT(DISTINCT D.APR_ID) COUNT
+	FROM APR_DOC D
+	JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	WHERE APR_STATUS = 1
+	AND APR_YN = 4
+    AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                   FROM APPROVAL B
+	                   GROUP BY B.APR_ID
+	                   HAVING B.APR_ID = A.APR_ID)
+	AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+</entry>
+
+<entry key="selectAllApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                             FROM APPROVAL B
+                             GROUP BY B.APR_ID
+                             HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectIngApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND NOT APR_YN = 4
+          AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                             FROM APPROVAL B
+                             GROUP BY B.APR_ID
+                             HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectDoneApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND APR_YN = 4
+              AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                                 FROM APPROVAL B
+                                 GROUP BY B.APR_ID
+                                 HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectSearchAllApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+          AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                             FROM APPROVAL B
+                             GROUP BY B.APR_ID
+                             HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectSearchIngApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND NOT (APR_ORDER = 4 AND APR_YN = 4)
+          AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+          AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                             FROM APPROVAL B
+                             GROUP BY B.APR_ID
+                             HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectSearchDoneApprovalList">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, T.*
+          FROM (SELECT DISTINCT A.APR_ID
+                      , D.APR_TITLE
+                      , D.UPDATE_DATE
+                      , E.EMP_NAME
+                      , A.APR_YN
+                      , A.APR_ORDER
+                      , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+          FROM APPROVAL A
+          JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+          JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+          LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+          WHERE D.APR_STATUS = 1
+          AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+          AND (APR_ORDER = 4 AND APR_YN = 4)
+              AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                                 FROM APPROVAL B
+                                 GROUP BY B.APR_ID
+                                 HAVING B.APR_ID = A.APR_ID)
+           ORDER BY UPDATE_DATE DESC) T)
+	WHERE RNUM BETWEEN ? AND ?
+</entry>
+
+<entry key="selectApproval">
+	SELECT APR_ID
+		 , APR_TITLE
+		 , APR_CONTENT
+		 , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD(DY) HH24:MI') ADATE
+		 , UPDATE_DATE
+		 , ORIGIN_NAME
+		 , CHANGE_NAME
+		 , EMP_NAME
+	FROM APR_DOC A
+	JOIN EMPLOYEE E ON (A.EMP_NO = E.EMP_NO)
+	WHERE APR_ID = ?
+	AND APR_STATUS = 1
+</entry>
+
+<entry key="selectDocSpentList">
+	SELECT DOC_NO
+           , SPENT_DATE
+           , CORP
+           , CORP_NO
+           , HISTORY
+           , SPENT_MONEY
+           , APR_ID
+	FROM DOC_SPENT
+	WHERE APR_ID = ?
+</entry>
+
+
+</properties>
+

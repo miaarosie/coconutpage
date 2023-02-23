@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+<!-- 사원현황 차트 -->
+
+	<!-- 총 사원 수 -->
+	<entry key="employeeStatus">
+	SELECT SUM(COUNT(*)) AS 총사원수
+         , SUM(COUNT(LEAVE_DATE)) AS 퇴직자
+         , SUM(COUNT(*) - COUNT(LEAVE_DATE)) AS 재직자
+	FROM EMPLOYEE
+	GROUP BY LEAVE_DATE
+	</entry>
+	
+	<!-- 퇴사 -->
+	<entry key="leaveByMonth">
+	SELECT EXTRACT (MONTH FROM LEAVE_DATE) "월", COUNT(*) "명" 
+    FROM EMPLOYEE 
+    WHERE EXTRACT (YEAR FROM LEAVE_DATE) = 2022 
+    GROUP BY EXTRACT (MONTH FROM LEAVE_DATE)	
+	</entry>
+	
+	<!-- 입사 -->
+	<entry key="enrollByMonth">
+	SELECT EXTRACT (MONTH FROM ENROLL_DATE) "월", COUNT(*) "명" 
+    FROM EMPLOYEE 
+    WHERE EXTRACT (YEAR FROM ENROLL_DATE) = 2022 
+    GROUP BY EXTRACT (MONTH FROM ENROLL_DATE)
+	</entry>
+	
+	
+	<!-- 문서 상태 차트 -->
+	
+	<!-- 1. 문서 전체 갯수 -->
+	<entry key="selectAllListCount">
+ 	SELECT APR_YN 상태, COUNT(DISTINCT D.APR_ID) 갯수
+    FROM APR_DOC D
+    JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+    WHERE APR_YN != 3
+    GROUP BY APR_YN
+
+	</entry>
+
+	<!-- 2. 진행 중 -->
+	<entry key="selectIngListCount">
+	SELECT COUNT(*) COUNT
+	 FROM (SELECT DISTINCT D.APR_ID
+           FROM APR_DOC D
+           JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+           WHERE APR_STATUS = 1
+           MINUS 
+           SELECT DISTINCT D.APR_ID
+           FROM APR_DOC D
+           JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+           WHERE APR_STATUS = 1
+           AND  (APR_ORDER = 4 AND APR_YN = 4))
+	</entry>
+
+	<!-- 3. 결재 완료 -->
+	<entry key="selectDoneListCount">
+    SELECT COUNT(DISTINCT D.APR_ID) COUNT
+    FROM APR_DOC D
+    JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+    WHERE APR_STATUS = 1
+    AND (APR_ORDER = 4 AND APR_YN = 4)
+	</entry>
+	
+	<!-- 4. 문서 차트 접수~완료 -->
+	<entry key="selectApprovalList">
+	 SELECT APR_YN 상태
+         , COUNT(DISTINCT D.APR_ID) 갯수 
+    FROM APR_DOC D
+    JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+    GROUP BY APR_YN
+    </entry>
+</properties>

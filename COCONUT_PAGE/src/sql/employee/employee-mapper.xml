@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="loginEmployee">
+		SELECT E.*, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON (D.DEPT_CODE = E.DEPT_CODE)
+		JOIN JOB J ON (J.JOB_CODE = E.JOB_CODE)
+		WHERE EMP_NO = ?
+		AND EMP_PWD = ?
+	</entry>
+	
+	<entry key="modifyInfo">
+		UPDATE EMPLOYEE
+		SET NICK_NAME = ?, ADDRESS = ?, PHONE = ?
+		WHERE EMP_NO = ?
+	</entry>
+	
+	<entry key="modifyPwd">
+		UPDATE EMPLOYEE
+		SET EMP_PWD = ?
+		WHERE EMP_NO = ? AND EMP_PWD = ?
+	</entry>
+	
+	<entry key="selectEmployee">
+		SELECT E.*, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON (D.DEPT_CODE = E.DEPT_CODE)
+		JOIN JOB J ON (J.JOB_CODE = E.JOB_CODE)
+		WHERE EMP_NO = ?
+		AND LEAVE_DATE IS NULL
+	</entry>
+	
+</properties>

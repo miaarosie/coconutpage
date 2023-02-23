@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="selectListCount">
+		SELECT COUNT(*) COUNT
+		FROM POST 
+		WHERE DELETE_YN = 'N'
+			AND POST_TYPE = 2
+	</entry>
+	
+	<entry key="selectpost_titleCount">
+		SELECT COUNT(*) COUNT
+		FROM POST 
+		WHERE DELETE_YN = 'N'
+			AND POST_TYPE = 2
+			AND POST_TITLE LIKE '%' || ? || '%'
+	</entry>
+	
+	<entry key="selectemp_nameCount">
+		SELECT COUNT(*) COUNT
+		FROM POST 
+		WHERE DELETE_YN = 'N'
+			AND POST_TYPE = 2
+			AND EMP_NAME LIKE '%' || ? || '%'
+	</entry>
+	
+	
+	<entry key="selectList">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, P.*
+		      FROM (SELECT POST_NO, POST_TITLE, EMP_NAME , REG_DATE
+		            FROM POST
+		            JOIN EMPLOYEE USING(EMP_NO)
+		            WHERE DELETE_YN = 'N'
+		            	AND POST_TYPE = 2
+		            ORDER BY POST_NO DESC)P)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectpost_title">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, P.*
+		      FROM (SELECT POST_NO, POST_TITLE, EMP_NAME , REG_DATE
+		            FROM POST
+		            JOIN EMPLOYEE USING(EMP_NO)
+		            WHERE DELETE_YN = 'N'
+		            	AND POST_TYPE = 2
+		            	AND POST_TITLE LIKE '%' || ? || '%'
+		            ORDER BY POST_NO DESC)P)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectemp_name">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, P.*
+		      FROM (SELECT POST_NO, POST_TITLE, EMP_NAME , REG_DATE
+		            FROM POST
+		            JOIN EMPLOYEE USING(EMP_NO)
+		            WHERE DELETE_YN = 'N'
+		            	AND POST_TYPE = 2
+		            	AND EMP_NAME LIKE '%' || ? || '%'
+		            ORDER BY POST_NO DESC)P)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="increaseCount">
+		UPDATE POST
+		   SET VIEW_COUNT = VIEW_COUNT+1 
+		WHERE POST_NO = ?
+		   AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="insertPost2">
+		INSERT INTO POST (POST_NO
+                , POST_TYPE
+                , POST_TITLE
+                , POST_CONTENT
+                , EMP_NO)
+          VALUES (SEQ_POST_NO.NEXTVAL
+                , 2
+                , ?
+                , ?
+                , ?)
+	</entry>
+	
+	<entry key="insertPost2File">
+		INSERT INTO POST_FILE (FILE_NO
+                     , ORIGIN_NAME
+                     , CHANGE_NAME
+                     , FILE_PATH
+                     , POST_NO)
+               VALUES (SEQ_FILE_NO.NEXTVAL
+                     , ?
+                     , ?
+                     , ?
+                     , SEQ_POST_NO.CURRVAL)
+	</entry>
+	
+	<entry key="selectPost2">
+		SELECT POST_NO
+		     , POST_TITLE
+		     , DEPT_NAME
+		     , EMP_NAME
+		     , REG_DATE
+		     , VIEW_COUNT
+		     , POST_CONTENT
+		FROM POST P
+		JOIN EMPLOYEE E USING(EMP_NO)
+		JOIN DEPARTMENT D USING(DEPT_CODE)
+		WHERE POST_NO = ?
+		   AND P.DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="selectPost2File">
+		SELECT FILE_NO
+		     , ORIGIN_NAME
+		     , CHANGE_NAME
+		     , FILE_PATH
+		FROM POST_FILE
+		WHERE POST_NO = ?
+	</entry>
+	
+	<entry key="updatePost2">
+		UPDATE POST
+	   	  SET POST_TITLE = ?
+	    	, POST_CONTENT = ?
+		WHERE POST_NO = ?
+	    	AND DELETE_YN = 'N'
+	</entry>
+	
+	<entry key="updatePost2File">
+		UPDATE POST_FILE
+	  		SET ORIGIN_NAME = ?
+			  , CHANGE_NAME = ?
+			  , UPLOAD_DATE = SYSDATE
+		WHERE FILE_NO = ?
+	</entry>
+	
+	<entry key="insertNewPost2File">
+		INSERT INTO POST_FILE (FILE_NO
+	                     , ORIGIN_NAME
+	                     , CHANGE_NAME
+	                     , FILE_PATH
+	                     , POST_NO)
+	               VALUES (SEQ_FILE_NO.NEXTVAL
+	                     , ?
+	                     , ?
+	                     , ?
+	                     , ?)
+	</entry>
+	
+	<entry key="deletePost2">
+		UPDATE POST
+		SET DELETE_YN = 'Y'
+		WHERE POST_NO = ?
+	</entry>
+	
+	<entry key="deletePost2File">
+		UPDATE POST_FILE
+		SET DELETE_YN = 'Y'
+		WHERE FILE_NO = ?
+	</entry>
+	
+	<entry key="countLike">
+		SELECT COUNT(*) COUNT
+		FROM LIKE_POST
+		WHERE POST_NO = ?
+	</entry>
+	
+	<entry key="selectLike">
+		SELECT EMP_NO
+		FROM LIKE_POST
+		WHERE POST_NO = ?
+		   AND EMP_NO = ?
+	</entry>
+	
+	<entry key="insertLike">
+		INSERT INTO LIKE_POST
+			   VALUES(?,?)
+	</entry>
+	
+	<entry key="deleteLike">
+		DELETE
+		FROM LIKE_POST
+		WHERE POST_NO = ? 
+			AND EMP_NO = ?
+	</entry>
+	
+	<entry key="insertReply">
+		INSERT INTO REPLY (REPLY_NO
+						 , REPLY_CONTENT
+						 , POST_NO
+						 , EMP_NO)
+				   VALUES (SEQ_REPLY_NO.NEXTVAL
+				         , ?
+				         , ?
+				         , ?)
+	</entry>
+	
+	<entry key="selectReplyList">
+		SELECT REPLY_NO
+			 , REPLY_CONTENT
+			 , TO_CHAR(REG_DATE, 'MM/DD HH24:MI') REG_DATE
+			 , PARENT_REPLY
+			 , EMP_NAME
+			 , DEPT_NAME
+		  FROM REPLY
+		  JOIN EMPLOYEE USING(EMP_NO)
+		  JOIN DEPARTMENT USING(DEPT_CODE)
+		 WHERE POST_NO = ?
+		   AND REPLY.DELETE_YN = 'N'
+		START WITH PARENT_REPLY IS NULL
+		CONNECT BY PRIOR REPLY_NO = PARENT_REPLY
+		ORDER SIBLINGS BY REPLY_NO
+	</entry>
+	
+	<entry key="insertNestedReply">
+		INSERT INTO REPLY (REPLY_NO
+					     , REPLY_CONTENT
+					     , PARENT_REPLY
+					     , POST_NO
+					     , EMP_NO)
+				   VALUES (SEQ_REPLY_NO.NEXTVAL
+					   	 , ?
+					   	 , ?
+					   	 , ?
+					   	 , ?)
+	</entry>
+	
+	<entry key="deleteReply">
+		UPDATE REPLY
+		SET DELETE_YN = 'Y'
+		WHERE REPLY_NO = ?
+	</entry>
+	
+</properties>

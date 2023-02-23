@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="search">
+	
+            SELECT EMP_NO "사번",EMP_NAME"이름",
+            NVL(E.NICK_NAME,'미설정')"닉네임",
+            NVL(D.DEPT_NAME,'대표')"부서이름",
+            JOB_NAME"직급명",
+            EMAIL"이메일",
+            TEL"내선번호",
+            PHONE"휴대폰", 
+            LEAVE_DATE"퇴사일" 
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE)
+			ORDER BY DEPT_NAME NULLS FIRST
+			
+	</entry>
+	
+	<entry key="detail">
+	  		SELECT EMP_NO "사번",EMAIL"이메일",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",
+	  		NVL(D.DEPT_NAME,'대표')"소속부서",PHONE"핸드폰",JOB_NAME"직급",TEL"내선번호",PROFILE"프로필",
+	  		ENROLL_DATE"입사일",LEAVE_DATE"퇴사일",EMP_PWD"비밀번호",MANAGER_YN"관리자여부"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE)
+			WHERE EMP_NO = ? 
+			ORDER BY DEPT_NAME NULLS FIRST
+	</entry>
+
+	
+	
+	<entry key="searchView">
+	      	SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",
+            PHONE"휴대폰",LEAVE_DATE"퇴사일"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+         
+            
+	</entry>
+	
+	
+	<entry key="selectListCount">
+	  	SELECT COUNT(*) COUNT
+		FROM EMPLOYEE
+		WHERE LEAVE_DATE IS  NULL
+
+	</entry>
+	
+
+		<entry key="selectempList">
+	  	 	SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NICK_NAME"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",PHONE"휴대폰"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+            ORDER BY DEPT_NAME) A ) 
+            WHERE RNUM BETWEEN ? AND ?
+			
+	</entry>
+	
+	
+	<entry key="showAllempList">
+ 	
+ 			SELECT EMP_NO "사번",EMP_NAME"이름",
+            NVL(D.DEPT_NAME,'대표')"부서이름",
+            JOB_NAME"직급명",
+            EMAIL"이메일",
+ 	 		EMP_PWD"비밀번호",
+ 	 		TEL"내선번호",
+ 	 		PHONE"휴대폰",
+ 	 		ADDRESS "주소",
+ 	 		MANAGER_YN"관리자여부",
+ 	 		ENROLL_DATE"입사일",
+ 	 		LEAVE_DATE"퇴사일"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE)
+			ORDER BY DEPT_NAME NULLS FIRST
+          
+
+	</entry>
+	 
+	<entry key="insertMember">
+ 	
+   	INSERT INTO EMPLOYEE(
+ 	EMP_NO,
+	EMP_NAME,
+	GENDER,
+	EMP_NUM,
+	DEPT_CODE,
+	JOB_CODE,
+	EMAIL,
+	EMP_PWD,
+	TEL,
+	PHONE,
+	ADDRESS,
+	MANAGER_YN,
+	ENROLL_DATE
+	)
+	VALUES(?,?,?
+	,?,?,?
+	,?,?,?
+	,?,?,?,?)
+   
+	</entry>
+	
+	<entry key="insertThumbnailmMember">
+ 	
+	UPDATE EMPLOYEE
+	SET PROFILE = ?	
+	WHERE EMP_NO = ?
+	
+	</entry>
+	
+	
+	<entry key="searchListAdmin">
+ 			SELECT EMP_NO "사번",
+ 			EMP_NAME"이름",
+ 			NVL(D.DEPT_NAME,'대표')"부서이름",
+ 			JOB_NAME"직급명",
+ 			EMAIL"이메일",
+ 			EMP_PWD"비밀번호",
+ 			TEL"내선번호",
+ 			PHONE"휴대폰"
+ 			ADDRESS"주소",
+ 	 		MANAGER_YN"관리자여부",
+ 	 		ENROLL_DATE"입사일",
+ 	 		LEAVE_DATE"퇴사일"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE)
+			
+	 		
+	</entry>
+	
+	
+	
+	<entry key="updateMemberInfo">
+ 		UPDATE EMPLOYEE 
+        SET DEPT_CODE =?,
+        JOB_CODE=?,
+        EMP_PWD=?,
+        TEL=?,
+        MANAGER_YN=?
+        WHERE EMP_NO=?
+	 		
+	</entry>
+	
+	<entry key ="noCheck">
+	
+	SELECT COUNT(*)
+	FROM EMPLOYEE
+	WHERE EMP_NO = ?
+	
+	</entry>
+	
+	
+	<entry key="resignMember">
+	
+	UPDATE EMPLOYEE
+	SET LEAVE_DATE= ?
+	WHERE EMP_NO = ? 
+	
+	</entry>
+	
+	
+	
+	<entry key="selectListCountbyEmpName">
+		SELECT COUNT(*) COUNT
+		FROM EMPLOYEE
+		WHERE EMP_NAME  LIKE '%' || ? || '%'
+		 and LEAVE_DATE IS NULL
+	</entry>
+	
+	<entry key="selectListCountbyEmpNo">
+		SELECT COUNT(*) COUNT
+		FROM EMPLOYEE
+		WHERE EMP_NO  LIKE '%' || ? || '%'
+		and LEAVE_DATE IS NULL
+	</entry>
+	
+	<entry key="selectListCountbyDeptName">
+		SELECT COUNT(*) COUNT
+		FROM EMPLOYEE e
+		JOIN DEPARTMENT D ON (d.DEPT_CODE = e.dept_code)
+		WHERE DEPT_NAME  LIKE '%' || ? || '%'
+		and LEAVE_DATE IS NULL
+	</entry>
+	
+	<entry key="selectListCountbyJobName">
+		SELECT COUNT(*) COUNT
+		FROM EMPLOYEE
+		JOIN JOB USING (JOB_CODE)
+		WHERE JOB_NAME  LIKE '%' || ? || '%'
+		and LEAVE_DATE IS NULL
+	</entry>
+	
+	<entry key="selectByempName">
+	    	SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",PHONE"휴대폰"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+            AND  EMP_NAME  LIKE '%' || ? || '%'
+            ORDER BY DEPT_NAME)A )
+            WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	
+	<entry key="selectByempNo">
+	    	SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",PHONE"휴대폰"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+            AND  EMP_NO LIKE '%' || ? || '%'
+            ORDER BY DEPT_NAME)A )
+            WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	
+	<entry key="selectByJobName">
+	    SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",PHONE"휴대폰"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+            AND  J.JOB_NAME  LIKE '%' || ? || '%'
+            ORDER BY DEPT_NAME)A )
+            WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	
+	<entry key="selectBydeptName">
+	    SELECT *
+            FROM (SELECT ROWNUM RNUM , A.*
+            FROM ( SELECT
+            EMP_NO "사번",EMP_NAME"이름",NVL(E.NICK_NAME,'미설정')"닉네임",NVL(D.DEPT_NAME,'대표')"부서이름",JOB_NAME"직급명",EMAIL"이메일",TEL"내선번호",PHONE"휴대폰"
+			FROM EMPLOYEE E 
+			LEFT OUTER JOIN DEPARTMENT D
+			ON (E.DEPT_CODE = D.DEPT_CODE)
+			LEFT OUTER JOIN JOB J
+			ON ( E.JOB_CODE=J.JOB_CODE) 
+            WHERE LEAVE_DATE IS NULL
+            AND  D.DEPT_NAME  LIKE '%' || ? || '%'
+            ORDER BY DEPT_NAME)A )
+            WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	
+	
+
+</properties>

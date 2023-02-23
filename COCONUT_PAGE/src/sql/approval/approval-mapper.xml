@@ -1,0 +1,1297 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<!-- 결재선 조직도 전체 사원 리스트 불러오기 -->
+	<entry key="selectEmployeeList">
+		SELECT EMP_NO, EMP_NAME
+		, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON (D.DEPT_CODE = E.DEPT_CODE)
+		JOIN JOB J ON (J.JOB_CODE = E.JOB_CODE)
+		WHERE LEAVE_DATE IS NULL
+		ORDER BY D.DEPT_CODE, J.JOB_CODE, ENROLL_DATE DESC
+	</entry>
+	<!-- 직원이 존재하는 모든 부서코드 불러오기 -->
+	<entry key="selectDeptList">
+		SELECT DEPT_NAME
+		FROM DEPARTMENT
+		WHERE DEPT_CODE IN (
+		    SELECT DEPT_CODE
+		    FROM EMPLOYEE
+		    JOIN DEPARTMENT USING(DEPT_CODE) 
+		    GROUP BY DEPT_CODE
+		) ORDER BY DEPT_CODE
+	</entry>
+	<!-- 결재선 부서로 검색-->
+	<entry key="searchAprLineEListByDept">
+		SELECT EMP_NO, EMP_NAME
+		, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON (D.DEPT_CODE = E.DEPT_CODE)
+		JOIN JOB J ON (J.JOB_CODE = E.JOB_CODE)
+		WHERE LEAVE_DATE IS NULL
+        AND DEPT_NAME = ?		
+	</entry>
+	<!-- 결재선 이름으로 검색-->
+	<entry key="searchAprLineEListByName">
+		SELECT EMP_NO, EMP_NAME
+		, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON (D.DEPT_CODE = E.DEPT_CODE)
+		JOIN JOB J ON (J.JOB_CODE = E.JOB_CODE)
+		WHERE LEAVE_DATE IS NULL
+        AND EMP_NAME LIKE '%' || ? || '%'	
+        ORDER BY DEPT_NAME	
+	</entry>
+	
+	
+	
+	<!-- 결재라인 변경 모달 결재자 참조자 추가   ajax 호출 -->
+	<entry key="selectEmployee">
+		SELECT EMP_NO, EMP_NAME, PROFILE, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE
+		JOIN DEPARTMENT USING(DEPT_CODE)
+		JOIN JOB J USING(JOB_CODE)
+		WHERE EMP_NO = ?
+		AND LEAVE_DATE IS NULL
+	</entry>
+	<!-- 결재자 리스트 추가  -->
+	<entry key="insertAprList">
+		INSERT INTO APPROVAL
+		(EMP_NO, APR_ORDER, APR_YN, APR_ID)
+		VALUES (?, ?, 1
+					,  CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.CURRVAL
+		                    WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.CURRVAL
+		                    WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.CURRVAL
+		                END)
+	</entry>
+	<!-- 참조자 리스트 추가  -->
+	<entry key="insertRefList">
+		INSERT INTO DOC_CC
+		(EMP_NO, APR_ID)
+		VALUES (?
+				,  CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.CURRVAL
+	                    WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.CURRVAL
+	                    WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.CURRVAL
+	               END)
+	</entry>
+	<!-- 문서 추가  -->
+	<entry key="insertAppDoc">
+		INSERT INTO APR_DOC (APR_ID
+                           , APR_TITLE
+                           , APR_CONTENT
+                           , WRITE_DATE
+                           , UPDATE_DATE
+                           , APR_STATUS
+                           , ORIGIN_NAME
+                           , CHANGE_NAME
+                           , APR_COMMENT
+                           , EMP_NO)
+		VALUES (CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.NEXTVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.NEXTVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.NEXTVAL
+                END
+                , ?
+                , ?
+                , SYSDATE
+                , SYSDATE
+                , 1
+                , ?
+                , ?
+                , ?
+                , ?)	
+	</entry>
+	<!-- 지결 내역 추가  -->
+	<entry key="insertDocSpent">
+		INSERT INTO DOC_SPENT (DOC_NO
+                             , SPENT_DATE
+                             , CORP
+                             , CORP_NO
+                             , HISTORY
+                             , SPENT_MONEY
+                             , APR_ID)
+		VALUES (SEQ_DOC_SPENT.NEXTVAL
+              , ?
+              , ?
+              , ?
+              , ?
+              , ?
+              , CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.CURRVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.CURRVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.CURRVAL
+                END)
+	</entry>
+	
+	<!-- 결재 문서 상세 뷰  -->
+	<entry key="selectApprovalById">
+		SELECT APR_ID
+		     , APR_TITLE
+		     , APR_CONTENT
+		     , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD(DY) HH24:MI') ADATE
+		     , UPDATE_DATE
+		     , APR_STATUS
+		     , ORIGIN_NAME
+		     , CHANGE_NAME
+		     , APR_COMMENT
+		     , EMP_NO
+		FROM APR_DOC		
+		WHERE APR_ID = ?
+	</entry>
+	<!-- 결재자 리스트 불러오기  -->
+	<entry key="selectAprListById">
+		SELECT A.EMP_NO, A.APR_ORDER
+		, TO_CHAR(A.OPEN_DATE , 'YYYY-MM-DD(DY) HH24:MI') ODATE
+		, TO_CHAR(A.APR_DATE , 'YYYY-MM-DD(DY) HH24:MI') APRDATE
+		, TO_CHAR(A.RECEIVE_DATE , 'YYYY-MM-DD(DY) HH24:MI') ADATE
+		, A.APR_YN
+		, A.APR_COMMENT, A.APR_ID
+		, E.EMP_NAME, E.PROFILE
+		, D.DEPT_NAME, J.JOB_NAME
+		FROM APPROVAL A
+		JOIN EMPLOYEE E
+		ON A.EMP_NO=E.EMP_NO
+		JOIN DEPARTMENT D
+		USING (DEPT_CODE)
+		JOIN JOB J
+		USING (JOB_CODE)
+		WHERE APR_ID = ?
+		ORDER BY APR_ORDER
+	</entry>
+	<!-- 참조자 리스트 불러오기  -->
+	<entry key="selectRefListById">
+		SELECT TO_CHAR(A.VIEW_DATE , 'YYYY-MM-DD(DY) HH24:MI') ADATE
+		, A.EMP_NO, A.APR_ID 
+		, E.EMP_NAME, E.PROFILE
+		, D.DEPT_NAME, J.JOB_NAME
+		FROM DOC_CC A
+		JOIN EMPLOYEE E
+		ON A.EMP_NO=E.EMP_NO
+		JOIN DEPARTMENT D
+		USING (DEPT_CODE)
+		JOIN JOB J
+		USING (JOB_CODE)
+		WHERE APR_ID = ?
+	</entry>
+	<!-- 지결 내역 리스트 불러오기  -->
+	<entry key="selectDSListById">
+		SELECT *
+		FROM DOC_SPENT	
+		WHERE APR_ID = ?
+		ORDER BY SPENT_DATE
+	</entry>
+	<!-- 결재자 열람일자 업데이트 -->
+	<entry key="updateAprOpenDate">
+		UPDATE APPROVAL
+		SET OPEN_DATE = SYSDATE
+		  , APR_YN = 2
+		WHERE EMP_NO = ? AND APR_ID = ? 
+	</entry>
+	<!-- 참조자 열람일자 업데이트 -->
+	<entry key="updateRefViewDate">
+		UPDATE DOC_CC	
+		SET VIEW_DATE = SYSDATE
+		WHERE EMP_NO = ? AND APR_ID = ? 
+	</entry>
+	<!-- 결재 승인여부 업데이트 -->
+	<entry key="updateAprYN">
+		UPDATE APPROVAL	
+		SET APR_YN = ?
+		, APR_COMMENT = ?
+		, APR_DATE = SYSDATE
+		WHERE EMP_NO = ? AND APR_ID = ?
+	</entry>
+	<!-- 열람일자 업데이트한 결재자 열람일자 가져오기-->
+	<entry key="selectAppOpenDate">
+		SELECT TO_CHAR(OPEN_DATE , 'YYYY-MM-DD(DY) HH24:MI') ODATE
+		, APR_YN
+		FROM APPROVAL
+		WHERE EMP_NO = ? AND APR_ID = ?
+	</entry>
+	<!-- 열람일자 업데이트한 참조자 열람일자 가져오기-->
+	<entry key="selectRefViewDate">
+		SELECT TO_CHAR(VIEW_DATE , 'YYYY-MM-DD(DY) HH24:MI') ODATE
+		FROM DOC_CC
+		WHERE EMP_NO = ? AND APR_ID = ?
+	</entry>
+	<!-- 기안자 결재자 참조자 직원 리스트 불러오기 -->
+	<entry key="selectProCommentEmployee">
+		SELECT EMP_NO, EMP_NAME, PHONE, PROFILE, EMAIL, TEL, NICK_NAME, GENDER, DEPT_NAME, JOB_NAME
+		FROM EMPLOYEE E
+		JOIN DEPARTMENT D ON E.DEPT_CODE=D.DEPT_CODE
+		JOIN JOB J ON E.JOB_CODE=J.JOB_CODE
+		WHERE EMP_NO = ?
+	</entry>
+	
+	<!-- 내가 받은문서함 전체 리스트 개수 불러오기  -->
+	<entry key="totalApprovalReceive">
+		SELECT COUNT(*)
+		FROM APR_DOC
+		WHERE APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+		                WHERE A.EMP_NO = ?
+		                AND D.APR_STATUS = 1)
+		OR APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+		                WHERE C.EMP_NO = ?
+		                AND D.APR_STATUS = 1)		
+	</entry>
+	<!-- 내가 받은문서함 전체 리스트 개수 불러오기    검색  -->
+	<entry key="totalSearchApprovalReceive">
+		SELECT COUNT(*)
+		FROM APR_DOC
+		WHERE (APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+		                WHERE A.EMP_NO = ?
+		                AND D.APR_STATUS = 1)
+		OR APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+		                WHERE C.EMP_NO = ?
+		                AND D.APR_STATUS = 1))
+	  	 AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%')		
+	</entry>
+	<!-- 내가 받은문서함 전체 리스트 데이터  불러오기 -->
+	<entry key="selectApprovalReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+											        SELECT D2.APR_ID
+									            , APR_TITLE
+									            , TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD') ADATE
+									            , E.EMP_NAME
+									             , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+									            , CASE                                
+									                   WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+									                   WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+									                                           FROM APPROVAL B
+									                                           GROUP BY B.APR_ID
+									                                           HAVING B.APR_ID = A.APR_ID)                   
+									                    AND A.APR_YN = 4) THEN '완결' 
+									                    WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+									                                        WHERE APR_YN=3) THEN '반려' 
+									                    WHEN D2.APR_ID IN ( SELECT APR_ID FROM APPROVAL B
+									                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+									                                                            WHERE APR_YN =4 
+									                                                            AND A.APR_ID = B.APR_ID
+									                                                            GROUP BY APR_ID)+1)
+									                                            AND EMP_NO = ?
+									                                            AND APR_YN IN (1,2))
+									                                        OR (APR_ORDER = 1
+									                                            AND EMP_NO = ?
+									                                            AND APR_YN IN (1,2))) THEN '미결'
+									                     WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL C
+									                                        WHERE APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+									                                                           WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+									                                                                               FROM APPROVAL B
+									                                                                               GROUP BY B.APR_ID
+									                                                                               HAVING B.APR_ID = A.APR_ID)
+									                                                          AND A.APR_YN = 4)
+									                                        AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+									                                                            WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+									                                                                                WHERE APR_YN =4 
+									                                                                                AND A.APR_ID = B.APR_ID
+									                                                                                GROUP BY APR_ID)+1)
+									                                                                    AND EMP_NO = ?
+									                                                                    AND APR_YN IN (1,2))
+									                                                            OR (APR_ORDER = 1
+									                                                                AND EMP_NO = ?
+									                                                                AND APR_YN IN (1,2)))
+									                                        AND APR_YN !=3
+									                                        GROUP BY APR_ID
+									                                        HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+									                                                                WHERE A.APR_ID = C.APR_ID
+									                                                                GROUP BY APR_ID)) THEN '진행중' 
+													 ELSE '진행중'
+											         END STATUS
+													FROM APR_DOC D2
+													JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+													LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+													JOIN APPROVAL A ON (D2.APR_ID = A.APR_ID)
+													WHERE D2.APR_ID IN (SELECT DISTINCT B.APR_ID
+													                FROM APR_DOC B
+													                JOIN APPROVAL A ON B.APR_ID = A.APR_ID
+													                LEFT JOIN DOC_CC C ON B.APR_ID = C.APR_ID
+													                WHERE (A.EMP_NO = ?
+													                OR C.EMP_NO = ?)
+													                AND B.APR_STATUS = 1)
+													GROUP by D2.APR_ID, APR_TITLE, TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD'), E.EMP_NAME, NVL2(S.DOC_NO,'지출결의서', '보고서')      
+													ORDER BY APR_ID DESC
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	<!-- 내가 받은문서함 전체 리스트 데이터  불러오기  검색   -->
+	<entry key="selectSearchApprovalReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+												 SELECT D2.APR_ID
+									            , APR_TITLE
+									            , TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD') ADATE
+									            , E.EMP_NAME	
+									             , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+									            , CASE 
+									               WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+								                   WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+								                                           FROM APPROVAL B
+								                                           GROUP BY B.APR_ID
+								                                           HAVING B.APR_ID = A.APR_ID)                   
+								                    AND A.APR_YN = 4) THEN '완결' 
+								                    WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+								                                        WHERE APR_YN=3) THEN '반려' 
+								                    WHEN D2.APR_ID IN ( SELECT APR_ID FROM APPROVAL B
+								                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+								                                                            WHERE APR_YN =4 
+								                                                            AND A.APR_ID = B.APR_ID
+								                                                            GROUP BY APR_ID)+1)
+								                                            AND EMP_NO = ?
+								                                            AND APR_YN IN (1,2))
+								                                        OR (APR_ORDER = 1
+								                                            AND EMP_NO = ?
+								                                            AND APR_YN IN (1,2))) THEN '미결'
+								                     WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL C
+								                                        WHERE APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+								                                                           WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+								                                                                               FROM APPROVAL B
+								                                                                               GROUP BY B.APR_ID
+								                                                                               HAVING B.APR_ID = A.APR_ID)
+								                                                          AND A.APR_YN = 4)
+								                                        AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+								                                                            WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+								                                                                                WHERE APR_YN =4 
+								                                                                                AND A.APR_ID = B.APR_ID
+								                                                                                GROUP BY APR_ID)+1)
+								                                                                    AND EMP_NO = ?
+								                                                                    AND APR_YN IN (1,2))
+								                                                            OR (APR_ORDER = 1
+								                                                                AND EMP_NO = ?
+								                                                                AND APR_YN IN (1,2)))
+								                                        AND APR_YN !=3
+								                                        GROUP BY APR_ID
+								                                        HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+								                                                                WHERE A.APR_ID = C.APR_ID
+								                                                                GROUP BY APR_ID)) THEN '진행중' 
+			                                        ELSE '진행중'
+											         END STATUS
+													FROM APR_DOC D2
+													JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+													LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+													JOIN APPROVAL A ON (D2.APR_ID = A.APR_ID)
+													WHERE D2.APR_ID IN (SELECT DISTINCT B.APR_ID
+													                FROM APR_DOC B
+													                JOIN APPROVAL A ON B.APR_ID = A.APR_ID
+													                LEFT JOIN DOC_CC C ON B.APR_ID = C.APR_ID
+													                WHERE (A.EMP_NO = ?
+													                OR C.EMP_NO = ?)
+													                AND B.APR_STATUS = 1) 
+													GROUP by D2.APR_ID, APR_TITLE, TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD'), E.EMP_NAME, NVL2(S.DOC_NO,'지출결의서', '보고서')  
+													 AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%')		           
+													ORDER BY APR_ID DESC		               
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	
+	<!-- 받은문서함 미결 리스트 개수 불러오기   내가 결재할 차례인데  아직 안했다 -->
+	<entry key="totalApprovalImNotIngReceive">		
+		SELECT COUNT(*) FROM APPROVAL B
+		WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+		                    WHERE APR_YN =4 
+		                    AND A.APR_ID = B.APR_ID
+		                    GROUP BY APR_ID)+1)
+		        AND EMP_NO = ?
+		        AND APR_YN IN (1,2))
+		OR (APR_ORDER = 1
+		    AND EMP_NO = ?
+		    AND APR_YN IN (1,2))
+	</entry>
+	<!-- 받은문서함 미결 리스트 개수 불러오기   내가 결재할 차례인데  아직 안했다   **검색 -->
+	<entry key="totalSearchApprovalImNotIngReceive">		
+		SELECT COUNT(*)
+		FROM APR_DOC 
+		WHERE APR_ID IN (
+		                    SELECT APR_ID FROM APPROVAL B
+							WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                    WHERE APR_YN =4 
+							                    AND A.APR_ID = B.APR_ID
+							                    GROUP BY APR_ID)+1)
+							        AND EMP_NO = ?
+							        AND APR_YN IN (1,2))
+							OR (APR_ORDER = 1
+							    AND EMP_NO = ?
+							    AND APR_YN IN (1,2))
+		) AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%')		 
+	</entry>
+	<!-- 받은문서함 미결 리스트 불러오기   내가 결재할 차례인데  아직 안했다  -->
+	<entry key="selectApprovalImNotIngReceiveList">
+		SELECT *
+		FROM (SELECT k.*,
+					ROWNUM as RNUM FROM (							        
+					        SELECT DISTINCT D2.APR_ID
+							    , APR_TITLE
+							    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE  
+							    , E.EMP_NAME 
+							    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+							    , '미결' STATUS
+							FROM APR_DOC D2
+							JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+							LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+							WHERE D2.APR_ID IN (
+							                    SELECT APR_ID FROM APPROVAL B
+							                    WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                        WHERE APR_YN =4 
+							                                        AND A.APR_ID = B.APR_ID
+							                                        GROUP BY APR_ID)+1)
+							                            AND EMP_NO = ?
+							                            AND APR_YN IN (1,2))
+							                    OR (APR_ORDER = 1
+							                        AND EMP_NO = ?
+							                        AND APR_YN IN (1,2))
+							)
+							ORDER BY APR_ID DESC
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	
+	<!--  받은문서함 미결 리스트 불러오기   내가 결재할 차례인데  아직 안했다 ** 검색 -->
+	<entry key="selectSearchApprovalImNotIngReceiveList">
+		SELECT *
+		FROM (SELECT k.*,
+					ROWNUM as RNUM FROM (							        
+					        SELECT DISTINCT D2.APR_ID
+							    , APR_TITLE
+							    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE   
+							    , E.EMP_NAME 
+							    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+							    , '미결' STATUS
+							FROM APR_DOC D2
+							JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+							LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+							WHERE D2.APR_ID IN (
+							                    SELECT APR_ID FROM APPROVAL B
+							                    WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                        WHERE APR_YN =4 
+							                                        AND A.APR_ID = B.APR_ID
+							                                        GROUP BY APR_ID)+1)
+							                            AND EMP_NO = ?
+							                            AND APR_YN IN (1,2))
+							                    OR (APR_ORDER = 1
+							                        AND EMP_NO = ?
+							                        AND APR_YN IN (1,2))
+							) AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%')  ORDER BY APR_ID DESC    
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	<!-- 내가 받은문서함 진행중 리스트 개수 불러오기   결재진행중  -->
+	<entry key="totalApprovalIngReceive">		
+		SELECT COUNT(*)
+		FROM APR_DOC 
+		WHERE APR_ID IN (
+		                     SELECT APR_ID FROM APPROVAL C
+		                    WHERE APR_ID IN (SELECT A.APR_ID 
+		                                    FROM APR_DOC D
+		                                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+		                                    WHERE A.EMP_NO = ?
+		                                    AND D.APR_STATUS = 1)
+		                    AND APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+		                                       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+		                                                           FROM APPROVAL B
+		                                                           GROUP BY B.APR_ID
+		                                                           HAVING B.APR_ID = A.APR_ID)
+		                                      AND A.APR_YN = 4)
+		                    AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+		                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+		                                                            WHERE APR_YN =4 
+		                                                            AND A.APR_ID = B.APR_ID
+		                                                            GROUP BY APR_ID)+1)
+		                                                AND EMP_NO = ?
+		                                                AND APR_YN IN (1,2))
+		                                        OR (APR_ORDER = 1
+		                                            AND EMP_NO = ?
+		                                            AND APR_YN IN (1,2)))
+		                    AND APR_YN !=3
+		                    GROUP BY APR_ID
+		                    HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+		                                            WHERE A.APR_ID = C.APR_ID
+		                                            GROUP BY APR_ID)
+		)	 
+	</entry>
+	<!-- 내가 받은문서함 진행중 리스트 개수 불러오기   결재 진행중 ** 검색  -->
+	<entry key="totalSearchApprovalIngReceive">		
+		SELECT COUNT(*)
+		FROM APR_DOC 
+		WHERE APR_ID IN (
+		                     SELECT APR_ID FROM APPROVAL C
+							                    WHERE APR_ID IN (SELECT A.APR_ID 
+							                                    FROM APR_DOC D
+							                                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+							                                    WHERE A.EMP_NO = ?
+							                                    AND D.APR_STATUS = 1)
+							                    AND APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+							                                       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+							                                                           FROM APPROVAL B
+							                                                           GROUP BY B.APR_ID
+							                                                           HAVING B.APR_ID = A.APR_ID)
+							                                      AND A.APR_YN = 4)
+							                    AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+							                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                                            WHERE APR_YN =4 
+							                                                            AND A.APR_ID = B.APR_ID
+							                                                            GROUP BY APR_ID)+1)
+							                                                AND EMP_NO = ?
+							                                                AND APR_YN IN (1,2))
+							                                        OR (APR_ORDER = 1
+							                                            AND EMP_NO = ?
+							                                            AND APR_YN IN (1,2)))
+							                    AND APR_YN !=3
+							                    GROUP BY APR_ID
+							                    HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                            WHERE A.APR_ID = C.APR_ID
+							                                            GROUP BY APR_ID)
+		) AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%')		 
+	</entry>
+	<!-- 내가 받은문서함 진행중 리스트 데이터  불러오기   내가 결재 안했고  진행중 -->
+	<entry key="selectApprovalIngReceiveList">
+		SELECT *
+		FROM (SELECT k.*,
+					ROWNUM as RNUM FROM (							        
+					        SELECT DISTINCT D2.APR_ID
+													    , APR_TITLE
+													    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE  
+													    , E.EMP_NAME 
+													    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+													    , '진행중' STATUS
+							FROM APR_DOC D2
+							JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+							LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+							WHERE D2.APR_ID IN (
+							                    SELECT APR_ID FROM APPROVAL C
+							                    WHERE APR_ID IN (SELECT A.APR_ID 
+							                                    FROM APR_DOC D
+							                                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+							                                    WHERE A.EMP_NO = ?
+							                                    AND D.APR_STATUS = 1)
+							                    AND APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+							                                       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+							                                                           FROM APPROVAL B
+							                                                           GROUP BY B.APR_ID
+							                                                           HAVING B.APR_ID = A.APR_ID)
+							                                      AND A.APR_YN = 4)
+							                    AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+							                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                                            WHERE APR_YN =4 
+							                                                            AND A.APR_ID = B.APR_ID
+							                                                            GROUP BY APR_ID)+1)
+							                                                AND EMP_NO = ?
+							                                                AND APR_YN IN (1,2))
+							                                        OR (APR_ORDER = 1
+							                                            AND EMP_NO = ?
+							                                            AND APR_YN IN (1,2)))
+							                    AND APR_YN !=3
+							                    GROUP BY APR_ID
+							                    HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                            WHERE A.APR_ID = C.APR_ID
+							                                            GROUP BY APR_ID)
+							)	ORDER BY APR_ID DESC    
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	<!-- 내가 받은문서함 진행중 리스트 데이터  불러오기   내가 결재안했고  진행중 ** 검색-->
+	<entry key="selectSearchApprovalIngReceiveList">
+		SELECT *
+		FROM (SELECT k.*,
+					ROWNUM as RNUM FROM (							        
+					        SELECT DISTINCT D2.APR_ID
+													    , APR_TITLE
+													    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE  
+													    , E.EMP_NAME 
+													    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+													    , '진행중' STATUS
+							FROM APR_DOC D2
+							JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+							LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+							WHERE D2.APR_ID IN (
+							                    SELECT APR_ID FROM APPROVAL C
+							                    WHERE APR_ID IN (SELECT A.APR_ID 
+							                                    FROM APR_DOC D
+							                                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+							                                    WHERE A.EMP_NO = ?
+							                                    AND D.APR_STATUS = 1)
+							                    AND APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+							                                       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+							                                                           FROM APPROVAL B
+							                                                           GROUP BY B.APR_ID
+							                                                           HAVING B.APR_ID = A.APR_ID)
+							                                      AND A.APR_YN = 4)
+							                    AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+							                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                                            WHERE APR_YN =4 
+							                                                            AND A.APR_ID = B.APR_ID
+							                                                            GROUP BY APR_ID)+1)
+							                                                AND EMP_NO = ?
+							                                                AND APR_YN IN (1,2))
+							                                        OR (APR_ORDER = 1
+							                                            AND EMP_NO = ?
+							                                            AND APR_YN IN (1,2)))
+							                    AND APR_YN !=3
+							                    GROUP BY APR_ID
+							                    HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+							                                            WHERE A.APR_ID = C.APR_ID
+							                                            GROUP BY APR_ID)
+							)	AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%')		  ORDER BY APR_ID DESC    
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	
+	<!-- 내가 받은문서함 반려 리스트 개수 불러오기  -->
+	<entry key="totalApprovalRejectReceive">
+		SELECT COUNT(*) FROM APPROVAL
+        WHERE APR_ID IN (
+                   SELECT A.APR_ID 
+                   FROM APR_DOC D
+                   JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+                   WHERE A.EMP_NO = ?
+                   AND D.APR_STATUS = 1)
+         AND APR_YN=3
+	</entry>
+	<!-- 내가 받은문서함 반려 리스트 개수 불러오기  검색-->
+	<entry key="totalSearchApprovalRejectReceive">
+		SELECT COUNT(*) FROM APR_DOC
+		WHERE APR_ID IN (SELECT APR_ID FROM APPROVAL
+		           WHERE APR_ID IN (
+		                      SELECT A.APR_ID 
+		                      FROM APR_DOC D
+		                      JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+		                      WHERE A.EMP_NO = ?
+		                      AND D.APR_STATUS = 1)
+		 AND APR_YN=3 AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%'))
+	</entry>
+	<!-- 내가 받은문서함 반려 리스트 데이터  불러오기 -->
+	<entry key="selectApprovalRejectReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+										       SELECT DISTINCT D2.APR_ID
+															    , APR_TITLE
+															    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE  
+															    , E.EMP_NAME 
+															    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+															    , '미결' STATUS
+												FROM APR_DOC D2
+												JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+												LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+												WHERE D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+												                WHERE APR_ID IN (
+												                    SELECT A.APR_ID 
+												                    FROM APR_DOC D
+												                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+												                    WHERE A.EMP_NO = ?
+												                    AND D.APR_STATUS = 1)
+												                AND APR_YN=3)
+												ORDER BY APR_ID DESC
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	<!-- 내가 받은문서함 반려 리스트 데이터  불러오기 **검색 -->
+	<entry key="selectSearchApprovalRejectReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+										       SELECT DISTINCT D2.APR_ID
+															    , APR_TITLE
+															    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE  
+															    , E.EMP_NAME 
+															    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+															    , '미결' STATUS
+												FROM APR_DOC D2
+												JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+												LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+												WHERE D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+												                WHERE APR_ID IN (
+												                    SELECT A.APR_ID 
+												                    FROM APR_DOC D
+												                    JOIN APPROVAL A ON D.APR_ID = A.APR_ID
+												                    WHERE A.EMP_NO = ?
+												                    AND D.APR_STATUS = 1)
+												                AND APR_YN=3)
+												AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%')	
+												ORDER BY APR_ID DESC
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	
+	<!-- 내가 받은문서함 완결 리스트 개수 불러오기  -->
+	<entry key="totalApprovalCompleteReceive">
+		SELECT COUNT(*) 
+	   FROM APPROVAL A
+       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                                   FROM APPROVAL B
+                                   GROUP BY B.APR_ID
+                                   HAVING B.APR_ID = A.APR_ID)
+        AND APR_ID IN (SELECT C.APR_ID 
+                          FROM APR_DOC D
+                          JOIN APPROVAL C ON D.APR_ID = C.APR_ID
+                          WHERE C.EMP_NO = ?
+                          AND D.APR_STATUS = 1) 
+        AND A.APR_YN = 4
+	</entry>
+	<!-- 내가 받은문서함 완결 리스트 개수 불러오기 ** 검색 -->
+	<entry key="totalSearchApprovalCompleteReceive">
+		SELECT COUNT(*)
+		FROM APR_DOC
+		WHERE APR_ID IN (SELECT APR_ID 
+									   FROM APPROVAL A
+								       WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+								                                   FROM APPROVAL B
+								                                   GROUP BY B.APR_ID
+								                                   HAVING B.APR_ID = A.APR_ID)
+								        AND APR_ID IN (SELECT C.APR_ID 
+								                          FROM APR_DOC D
+								                          JOIN APPROVAL C ON D.APR_ID = C.APR_ID
+								                          WHERE C.EMP_NO = ?
+								                          AND D.APR_STATUS = 1) 
+								        AND A.APR_YN = 4)
+        
+        AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%')
+	</entry>
+	<!-- 내가 받은문서함 완결 리스트 데이터  불러오기 -->
+	<entry key="selectApprovalCompleteReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+		       SELECT DISTINCT D2.APR_ID
+					    , APR_TITLE
+					    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE 
+					    , E.EMP_NAME 
+					    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+					    , '완결' STATUS
+					FROM APR_DOC D2
+					JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+					LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+					WHERE D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+					                    WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+					                                           FROM APPROVAL B
+					                                           GROUP BY B.APR_ID
+					                                           HAVING B.APR_ID = A.APR_ID)
+					                    AND APR_ID IN (SELECT C.APR_ID 
+					                                    FROM APR_DOC D
+					                                    JOIN APPROVAL C ON D.APR_ID = C.APR_ID
+					                                    WHERE C.EMP_NO = ?
+					                                    AND D.APR_STATUS = 1) 
+					                    AND A.APR_YN = 4)
+				ORDER BY APR_ID DESC
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	<!-- 내가 받은문서함 완결 리스트 데이터  불러오기 ** 검색 -->
+	<entry key="selectSearchApprovalCompleteReceiveList">
+		SELECT *
+		FROM (
+			SELECT k.*,
+			ROWNUM as RNUM FROM (		
+		       SELECT DISTINCT D2.APR_ID
+					    , APR_TITLE
+					    , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE 
+					    , E.EMP_NAME 
+					    , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+					    , '완결' STATUS
+					FROM APR_DOC D2
+					JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+					LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+					WHERE D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+					                    WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+					                                           FROM APPROVAL B
+					                                           GROUP BY B.APR_ID
+					                                           HAVING B.APR_ID = A.APR_ID)
+					                    AND APR_ID IN (SELECT C.APR_ID 
+					                                    FROM APR_DOC D
+					                                    JOIN APPROVAL C ON D.APR_ID = C.APR_ID
+					                                    WHERE C.EMP_NO = ?
+					                                    AND D.APR_STATUS = 1) 
+					                    AND A.APR_YN = 4)
+				AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%')	 ORDER BY APR_ID DESC
+	            ) k)
+		WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	<!-- 내가 받은문서함 참조 리스트 개수 불러오기  -->
+	<entry key="totalApprovalReferReceive">
+		SELECT COUNT(*)
+		FROM APR_DOC
+		WHERE APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+		                WHERE C.EMP_NO = ?
+		                AND D.APR_STATUS = 1)	
+	</entry>
+	<!-- 내가 받은문서함 참조 리스트 개수 불러오기 **검색 -->
+	<entry key="totalSearchApprovalReferReceive">
+		SELECT COUNT(*)
+		FROM APR_DOC
+		WHERE APR_ID IN (SELECT D.APR_ID
+		                FROM APR_DOC D
+		                JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+		                WHERE C.EMP_NO = ?
+		                AND D.APR_STATUS = 1)	
+		AND(APR_TITLE LIKE '%' || ? || '%' OR APR_ID LIKE '%' || ? || '%')
+	</entry>
+	<!-- 내가 받은문서함 참조 리스트 데이터  불러오기 -->
+	<entry key="selectApprovalReferReceiveList">
+		SELECT *
+		FROM (
+				SELECT k.*,
+				ROWNUM as RNUM FROM (		
+					        SELECT DISTINCT D2.APR_ID
+					                , APR_TITLE
+					                , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE
+					                , E.EMP_NAME
+					                , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+					                , CASE WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+																		           WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+																		                                   FROM APPROVAL B
+																		                                   GROUP BY B.APR_ID
+																		                                   HAVING B.APR_ID = A.APR_ID)                   
+																		            AND A.APR_YN = 4) THEN '완결' 
+							            WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+							                                WHERE APR_YN=3) THEN '반려' 
+							             ELSE '진행중'
+    									END STATUS
+				            FROM APR_DOC D2
+				            JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+				            LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+				            WHERE D2.APR_ID IN (SELECT D.APR_ID
+				                            FROM APR_DOC D
+				                            JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+				                            WHERE C.EMP_NO = ?
+				                            AND D.APR_STATUS = 1)
+				            GROUP BY D2.APR_ID, APR_TITLE, TO_CHAR(WRITE_DATE , 'YYYY-MM-DD'), E.EMP_NAME, NVL2(S.DOC_NO,'지출결의서', '보고서')
+				            ORDER BY APR_ID DESC        
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	<!-- 내가 받은문서함 참조 리스트 데이터  불러오기 **검색 -->
+	<entry key="selectSearchApprovalReferReceiveList">
+		SELECT *
+		FROM (
+				SELECT k.*,
+				ROWNUM as RNUM FROM (		
+					        SELECT DISTINCT D2.APR_ID
+					                , APR_TITLE
+					                , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE
+					                , E.EMP_NAME
+					                , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+					                , CASE WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+																		           WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+																		                                   FROM APPROVAL B
+																		                                   GROUP BY B.APR_ID
+																		                                   HAVING B.APR_ID = A.APR_ID)                   
+																		            AND A.APR_YN = 4) THEN '완결' 
+							            WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+							                                WHERE APR_YN=3) THEN '반려' 
+							             ELSE '진행중'
+    									END STATUS
+				            FROM APR_DOC D2
+				            JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+				            LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+				            WHERE D2.APR_ID IN (SELECT D.APR_ID
+				                            FROM APR_DOC D
+				                            JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+				                            WHERE C.EMP_NO = ?
+				                            AND D.APR_STATUS = 1)
+				            AND(D2.APR_TITLE LIKE '%' || ? || '%' OR D2.APR_ID LIKE '%' || ? || '%') 
+				            GROUP BY D2.APR_ID, APR_TITLE, TO_CHAR(WRITE_DATE , 'YYYY-MM-DD'), E.EMP_NAME, NVL2(S.DOC_NO,'지출결의서', '보고서')
+				            ORDER BY APR_ID DESC
+		        ) k)
+	    WHERE RNUM >= ? AND RNUM <![CDATA[<=]]>	?
+		ORDER BY RNUM
+	</entry>
+	
+	<!-- 전자결재홈 받은문서함 리스트 --> 
+	<entry key="selectrList">
+	SELECT * 
+	FROM (SELECT k.*, ROWNUM as RNUM 
+		FROM (SELECT D2.APR_ID
+	            , APR_TITLE
+	            , TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD') ADATE
+	            , E.EMP_NAME
+	             , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+	            , CASE                                   
+	                   WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL A
+	                   WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                                           FROM APPROVAL B
+	                                           GROUP BY B.APR_ID
+	                                           HAVING B.APR_ID = A.APR_ID)                   
+	                    AND A.APR_YN = 4) THEN '완결' 
+	                    WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL
+	                                        WHERE APR_YN=3) THEN '반려' 
+	                    WHEN D2.APR_ID IN ( SELECT APR_ID FROM APPROVAL B
+	                                        WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+	                                                            WHERE APR_YN =4 
+	                                                            AND A.APR_ID = B.APR_ID
+	                                                            GROUP BY APR_ID)+1)
+	                                            AND EMP_NO = ?
+	                                            AND APR_YN IN (1,2))
+	                                        OR (APR_ORDER = 1
+	                                            AND EMP_NO = ?
+	                                            AND APR_YN IN (1,2))) THEN '미결'
+	                     WHEN D2.APR_ID IN (SELECT APR_ID FROM APPROVAL C
+	                                        WHERE APR_ID NOT IN( SELECT APR_ID FROM APPROVAL A 
+	                                                           WHERE A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                                                                               FROM APPROVAL B
+	                                                                               GROUP BY B.APR_ID
+	                                                                               HAVING B.APR_ID = A.APR_ID)
+	                                                          AND A.APR_YN = 4)
+	                                        AND APR_ID NOT IN (SELECT APR_ID FROM APPROVAL B
+	                                                            WHERE (APR_ORDER = ((SELECT COUNT(APR_YN) FROM APPROVAL A
+	                                                                                WHERE APR_YN =4 
+	                                                                                AND A.APR_ID = B.APR_ID
+	                                                                                GROUP BY APR_ID)+1)
+	                                                                    AND EMP_NO = ?
+	                                                                    AND APR_YN IN (1,2))
+	                                                            OR (APR_ORDER = 1
+	                                                                AND EMP_NO = ?
+	                                                                AND APR_YN IN (1,2)))
+	                                        AND APR_YN !=3
+	                                        GROUP BY APR_ID
+	                                        HAVING count(apr_yn) = (SELECT COUNT(APR_YN) FROM APPROVAL A
+	                                                                WHERE A.APR_ID = C.APR_ID
+	                                                                GROUP BY APR_ID)) THEN '진행중' 
+	                ELSE '진행중'
+					END STATUS
+					FROM APR_DOC D2
+					JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+					LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+					JOIN APPROVAL A ON (D2.APR_ID = A.APR_ID)
+					WHERE D2.APR_ID IN (SELECT DISTINCT B.APR_ID
+					                FROM APR_DOC B
+					                JOIN APPROVAL A ON B.APR_ID = A.APR_ID
+					                LEFT JOIN DOC_CC C ON B.APR_ID = C.APR_ID
+					                WHERE (A.EMP_NO = ?
+					                OR C.EMP_NO = ?)
+					                AND B.APR_STATUS = 1)
+					GROUP by D2.APR_ID, APR_TITLE, TO_CHAR(D2.WRITE_DATE , 'YYYY-MM-DD'), E.EMP_NAME, NVL2(S.DOC_NO,'지출결의서', '보고서')      
+					ORDER BY APR_ID DESC
+		) k) 
+	WHERE RNUM >= 1 AND RNUM <![CDATA[ <= ]]> 5 ORDER BY RNUM
+	</entry>
+
+	<!-- 전자결재홈 상신문서함 리스트 --> 
+	<entry key="selectsList"> 
+	SELECT * 
+	FROM (SELECT ROWNUM RNUM, T.* 
+			FROM (SELECT DISTINCT A.APR_ID 
+						, D.APR_TITLE 
+						, D.UPDATE_DATE 
+						, E.EMP_NAME 
+						, A.APR_YN 
+						, NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO 
+					FROM APPROVAL A 
+					JOIN APR_DOC D ON (D.APR_ID = A.APR_ID) 
+					JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO) 
+					LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID) 
+					WHERE D.APR_STATUS = 1
+					AND D.EMP_NO = ? 
+					AND A.APR_ORDER = (SELECT MAX(APR_ORDER) 
+					FROM APPROVAL B 
+					GROUP BY B.APR_ID 
+					HAVING B.APR_ID = A.APR_ID) 
+			ORDER BY UPDATE_DATE DESC) T) 
+	WHERE RNUM BETWEEN 1 AND 5 
+	</entry>
+	<!-- 임시 저장 --> 
+	<entry key="insertTempAppDoc">
+		INSERT INTO APR_DOC (APR_ID
+                           , APR_TITLE
+                           , APR_CONTENT
+                           , WRITE_DATE
+                           , UPDATE_DATE
+                           , APR_STATUS
+                           , ORIGIN_NAME
+                           , CHANGE_NAME
+                           , EMP_NO)
+		VALUES (CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.NEXTVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.NEXTVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.NEXTVAL
+                END
+                , ?
+                , ?
+                , SYSDATE
+                , SYSDATE
+                , 0
+                , ?
+                , ?
+                , ?)	
+	</entry>
+	<!-- 임시저장 지결내역 --> 
+	<entry key="insertTempDocSpent">
+		INSERT INTO DOC_SPENT (DOC_NO
+                             , SPENT_DATE
+                             , CORP
+                             , CORP_NO
+                             , HISTORY
+                             , SPENT_MONEY
+                             , APR_ID)
+		VALUES (SEQ_DOC_SPENT.NEXTVAL
+              , ?
+              , ?
+              , ?
+              , ?
+              , ?
+              , CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.CURRVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.CURRVAL
+                     WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.CURRVAL
+                END)
+	</entry>
+	
+	<entry key="selectListCount">
+		SELECT COUNT(D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 1
+		AND D.EMP_NO = ?
+		AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                           FROM APPROVAL B
+                           GROUP BY B.APR_ID
+                           HAVING B.APR_ID = A.APR_ID)
+	</entry>
+	
+	<entry key="selectListCountNotNull">
+		SELECT COUNT(D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 1
+		AND D.EMP_NO = ?
+		AND A.APR_YN = ?
+		AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                         FROM APPROVAL B
+                         GROUP BY B.APR_ID
+                         HAVING B.APR_ID = A.APR_ID)
+	</entry>
+	<entry key="selectListSearchCountNotNull">
+		SELECT COUNT(D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 1
+		AND D.EMP_NO = ?
+		AND A.APR_YN = ?
+        AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+   		AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                      FROM APPROVAL B
+	                      GROUP BY B.APR_ID
+	                      HAVING B.APR_ID = A.APR_ID)
+	</entry>
+	
+	<entry key="selectListSearchCount">
+		SELECT COUNT(D.APR_ID) COUNT
+		FROM APR_DOC D
+		LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+		WHERE D.APR_STATUS = 1
+		AND D.EMP_NO = ?
+        AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+   		AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                       FROM APPROVAL B
+	                       GROUP BY B.APR_ID
+	                       HAVING B.APR_ID = A.APR_ID)
+	</entry>
+
+	<entry key="selectApprovalListNotNull">
+	SELECT *
+	FROM (SELECT ROWNUM RNUM, A.*
+          FROM (SELECT DISTINCT D.APR_ID
+                              , D.APR_TITLE
+                              , D.UPDATE_DATE
+                              , E.EMP_NAME
+                              , NVL(A.APR_YN, '5') APR_YN
+                              , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+	            FROM APR_DOC D
+	            JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+	            LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+	            LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+	            WHERE APR_STATUS = 1
+	            AND D.EMP_NO = ?
+	            AND A.APR_YN = ?
+	            AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                                   FROM APPROVAL B
+                                   GROUP BY B.APR_ID
+                                   HAVING B.APR_ID = A.APR_ID)
+	            ORDER BY UPDATE_DATE DESC) A)
+	WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectApprovalList">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, T.*
+            FROM (SELECT DISTINCT A.APR_ID
+                        , D.APR_TITLE
+                        , D.UPDATE_DATE
+                        , A.APR_YN
+                        , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+                        , E.EMP_NAME
+            FROM APPROVAL A
+            JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+            JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+            LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+            WHERE D.APR_STATUS = 1 -- 상신된 문서
+                AND D.EMP_NO = ?
+                AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+                                   FROM APPROVAL B
+                                   GROUP BY B.APR_ID
+                                   HAVING B.APR_ID = A.APR_ID)
+            ORDER BY UPDATE_DATE DESC) T)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectApprovalSearchList">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, A.*
+            FROM (SELECT DISTINCT D.APR_ID
+                                , D.APR_TITLE
+                                , D.UPDATE_DATE
+                                , E.EMP_NAME
+                                , NVL(A.APR_YN, '5') APR_YN
+                                , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+                   FROM APR_DOC D
+                   JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+                   LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+                   LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+                   WHERE APR_STATUS = 1
+                   AND D.EMP_NO = ?
+                   AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+                   AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                                   FROM APPROVAL B
+	                                   GROUP BY B.APR_ID
+	                                   HAVING B.APR_ID = A.APR_ID)
+                   ORDER BY UPDATE_DATE DESC) A)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectApprovalSearchListNotNull">
+		SELECT *
+		FROM (SELECT ROWNUM RNUM, A.*
+            FROM (SELECT DISTINCT D.APR_ID
+                                , D.APR_TITLE
+                                , D.UPDATE_DATE
+                                , E.EMP_NAME
+                                , NVL(A.APR_YN, '5') APR_YN
+                                , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+                   FROM APR_DOC D
+                   JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+                   LEFT JOIN APPROVAL A ON (D.APR_ID = A.APR_ID)
+                   LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+                   WHERE APR_STATUS = 1
+                   AND D.EMP_NO = ?
+                   AND A.APR_YN = ?
+                   AND (APR_TITLE LIKE '%' || ? || '%' OR D.APR_ID LIKE '%' || ? || '%')
+                   AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+	                                   FROM APPROVAL B
+	                                   GROUP BY B.APR_ID
+	                                   HAVING B.APR_ID = A.APR_ID)
+                   ORDER BY UPDATE_DATE DESC) A)
+		WHERE RNUM BETWEEN ? AND ?
+	</entry>
+	
+	<entry key="selectApproval">
+		SELECT APR_ID
+            , APR_TITLE
+            , APR_CONTENT
+            , TO_CHAR(WRITE_DATE , 'YYYY-MM-DD(DY) HH24:MI') ADATE
+            , UPDATE_DATE
+            , ORIGIN_NAME
+            , CHANGE_NAME
+            , EMP_NAME
+            , APR_COMMENT
+		FROM APR_DOC A
+		JOIN EMPLOYEE E ON (A.EMP_NO = E.EMP_NO)
+		WHERE APR_ID = ?
+		AND APR_STATUS = 1
+	</entry>
+	
+	<entry key="selectDocSpentList">
+		SELECT DOC_NO
+            , SPENT_DATE
+            , CORP
+            , CORP_NO
+            , HISTORY
+            , SPENT_MONEY
+            , APR_ID
+		FROM DOC_SPENT
+		WHERE APR_ID = ?
+	</entry>
+	
+	<!-- 임시저장했던 문서 결재자 리스트 추가  -->
+	<entry key="insertAprListTemp">
+		INSERT INTO APPROVAL
+		(EMP_NO, APR_ORDER, APR_YN, APR_ID)
+		VALUES (?, ?, 1, ?)
+	</entry>
+	<!-- 임시저장했던 문서 참조자 리스트 추가  -->
+	<entry key="insertRefListTemp">
+		INSERT INTO DOC_CC
+		(EMP_NO, APR_ID)
+		VALUES (?, ?)
+	</entry>
+	<!-- 일반 보고서 상신  -->
+	<entry key="sendReport">
+	INSERT INTO APR_DOC (APR_ID, 
+						APR_TITLE, 
+						APR_CONTENT,
+						UPDATE_DATE,
+						WRITE_DATE,
+						APR_STATUS,
+						ORIGIN_NAME,
+						CHANGE_NAME,
+						EMP_NO,
+						APR_COMMENT)
+	VALUES(CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.NEXTVAL
+	WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.NEXTVAL
+ 	WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.NEXTVAL
+	END
+	,?,?,SYSDATE,SYSDATE,?,?,?,?,?)
+	</entry>
+	<entry key="sendReportTemp">
+		INSERT INTO APR_DOC (APR_ID, APR_TITLE, APR_CONTENT,UPDATE_DATE,WRITE_DATE,APR_STATUS,ORIGIN_NAME,CHANGE_NAME,EMP_NO)
+		VALUES(CASE WHEN SEQ_APR_ID.CURRVAL &lt; 10 THEN 'COCO-' || SYSDATE || '-000' || SEQ_APR_ID.NEXTVAL
+		WHEN SEQ_APR_ID.CURRVAL >= 10 AND SEQ_APR_ID.CURRVAL &lt; 100 THEN 'COCO-' || SYSDATE || '-00' || SEQ_APR_ID.NEXTVAL
+	 	WHEN SEQ_APR_ID.CURRVAL >= 100 THEN 'COCO-' || SYSDATE || '-0' || SEQ_APR_ID.NEXTVAL
+		END,?,?,SYSDATE,SYSDATE,?,?,?,?)
+	</entry>
+	
+	
+	<entry key="selectEachReport">
+			 SELECT 
+			 APR_ID,
+			 APR_TITLE,
+		     APR_CONTENT,
+		     UPDATE_DATE,
+		     ORIGIN_NAME,
+		     CHANGE_NAME
+			 FROM APR_DOC
+			 WHERE APR_ID = ?
+			 AND APR_STATUS = 1
+	</entry>
+
+</properties>

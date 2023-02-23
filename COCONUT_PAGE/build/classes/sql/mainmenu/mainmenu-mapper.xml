@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="selectShareList">	
+   		SELECT *     
+	    FROM(SELECT ROWNUM RNUM, A.* 
+	        FROM (SELECT POST_NO
+                       , POST_TITLE
+	                FROM POST P
+	               WHERE POST_TYPE = ?
+	                 AND P.DELETE_YN = 'N'
+	                 ORDER BY POST_NO DESC) A)
+        WHERE RNUM BETWEEN 1 AND 6
+	</entry>
+	
+	<entry key="selectWagleList">	
+   		SELECT *     
+	    FROM(SELECT ROWNUM RNUM, A.* 
+	        FROM (SELECT POST_NO
+                       , POST_TITLE
+	                FROM POST P
+	               WHERE POST_TYPE = ?
+	                 AND P.DELETE_YN = 'N'
+	                 ORDER BY POST_NO DESC) A)
+        WHERE RNUM BETWEEN 1 AND 6
+	</entry>
+	
+	<entry key="selectNoticeList">
+		SELECT NOTICE_NO, NOTICE_TITLE
+		FROM (
+		    SELECT a.*,
+		    ROWNUM as RNUM FROM (
+		                        SELECT NOTICE_NO, NOTICE_TITLE
+		                        FROM NOTICE
+		                        WHERE DELETE_YN = 'N'
+		                        AND NOTICE_TYPE = ?
+		                        ORDER BY NOTICE_NO DESC
+		                        )a)
+		WHERE RNUM &gt;= 1 AND RNUM &lt;= 6
+		ORDER BY RNUM
+	</entry>
+	
+	<entry key="selectReceiveList">
+			SELECT *
+		FROM (SELECT k.*,
+			  ROWNUM as RNUM FROM (SELECT DISTINCT D2.APR_ID
+							                	, APR_TITLE
+							               		, TO_CHAR(WRITE_DATE , 'YYYY-MM-DD') ADATE
+							                	, E.EMP_NAME
+							                	, NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+		            			   FROM APR_DOC D2
+		            			   JOIN EMPLOYEE E ON (D2.EMP_NO = E.EMP_NO)
+		            			   LEFT JOIN DOC_SPENT S ON (S.APR_ID = D2.APR_ID)
+		            			   WHERE D2.APR_ID IN (SELECT B.APR_ID
+							                           FROM APR_DOC B
+							                           JOIN APPROVAL A ON B.APR_ID = A.APR_ID
+		                            				   WHERE A.EMP_NO = ?
+		                            					AND B.APR_STATUS = 1)
+		            				OR D2.APR_ID IN (SELECT D.APR_ID
+		                           					 FROM APR_DOC D
+		                           					 JOIN DOC_CC C ON D.APR_ID = C.APR_ID
+		                           					 WHERE C.EMP_NO = ?
+		                           						 AND D.APR_STATUS = 1)
+		            				ORDER BY APR_ID DESC) k)
+		WHERE RNUM >= 1 AND RNUM <![CDATA[<=]]>	3
+		ORDER BY RNUM
+	
+	</entry>
+	
+	<entry key="selectSendList">
+		SELECT *
+	    FROM (SELECT ROWNUM RNUM, T.*
+	          FROM (SELECT DISTINCT A.APR_ID
+	                           , D.APR_TITLE
+	                           , D.UPDATE_DATE
+	                           , E.EMP_NAME
+	                           , A.APR_YN
+	                           , NVL2(S.DOC_NO,'지출결의서', '보고서') DOC_NO
+		            FROM APPROVAL A
+		            JOIN APR_DOC D ON (D.APR_ID = A.APR_ID)
+		            JOIN EMPLOYEE E ON (D.EMP_NO = E.EMP_NO)
+		            LEFT JOIN DOC_SPENT S ON (S.APR_ID = D.APR_ID)
+		            WHERE D.APR_STATUS = 1 
+		                AND D.EMP_NO = ?
+		                AND A.APR_ORDER = (SELECT MAX(APR_ORDER)
+		                                   FROM APPROVAL B
+		                                   GROUP BY B.APR_ID
+		                                   HAVING B.APR_ID = A.APR_ID)
+	            ORDER BY UPDATE_DATE DESC) T)
+	      WHERE RNUM BETWEEN 1 AND 3
+	</entry>
+	
+	<entry key="selectToDoList">
+		SELECT CARD_STMT
+			 , CARD_TITLE
+			 , TO_CHAR(CARD_DEW , 'MM-DD') CARD_DEW
+			 , CARD_PRIORITY
+		  FROM CARD
+		 WHERE DELETE_YN = 'N'
+		   AND EMP_NO = ?
+	  	   AND CARD_STMT = 1
+	  	   ORDER BY CARD_STMT, CARD_ORDER ASC
+	</entry>
+	
+	<entry key="selectProgressList">
+		SELECT CARD_STMT
+			 , CARD_TITLE
+			 , TO_CHAR(CARD_DEW , 'MM-DD') CARD_DEW
+			 , CARD_PRIORITY
+		  FROM CARD
+		 WHERE DELETE_YN = 'N'
+		   AND EMP_NO = ?
+	  	   AND CARD_STMT = 2
+	  	   ORDER BY CARD_STMT, CARD_ORDER ASC
+	</entry>
+	
+	
+	
+	
+	
+	
+</properties>
